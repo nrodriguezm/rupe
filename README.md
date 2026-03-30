@@ -43,6 +43,12 @@ Run RSS ETL (recommended incremental source):
 python pipeline/jobs/run_rss_etl.py
 ```
 
+Run RUPE supplier ingestion:
+
+```bash
+python pipeline/jobs/run_rupe_ingest.py
+```
+
 Run assignment and digest generation:
 
 ```bash

@@ -59,3 +59,17 @@ create table if not exists pipeline_runs (
   status text,
   metrics jsonb
 );
+
+create table if not exists suppliers_rupe (
+  id bigserial primary key,
+  source_period text not null,
+  country text,
+  identification text,
+  legal_name text,
+  fiscal_address text,
+  locality text,
+  department text,
+  status text,
+  raw jsonb not null,
+  unique (source_period, identification, legal_name)
+);
