@@ -36,3 +36,37 @@ Run listings ETL (parse + normalize + DB upsert):
 # requires DATABASE_URL or local postgres in defaults
 python pipeline/jobs/run_listings_etl.py
 ```
+
+Run RSS ETL (recommended incremental source):
+
+```bash
+python pipeline/jobs/run_rss_etl.py
+```
+
+Run assignment and digest generation:
+
+```bash
+python pipeline/jobs/run_assignment_etl.py
+python pipeline/jobs/run_digest.py
+```
+
+Run detail enrichment (fills richer descriptions/buyer hints):
+
+```bash
+python pipeline/jobs/run_details_enrich.py
+```
+
+Run full sequence:
+
+```bash
+python pipeline/jobs/run_all.py
+```
+
+## Suggested cron schedule
+
+```cron
+*/30 * * * *  cd /path/to/rupe && . .venv/bin/activate && python pipeline/jobs/run_rss_etl.py
+35 * * * *    cd /path/to/rupe && . .venv/bin/activate && python pipeline/jobs/run_details_enrich.py
+5 * * * *     cd /path/to/rupe && . .venv/bin/activate && python pipeline/jobs/run_assignment_etl.py
+10 8 * * *    cd /path/to/rupe && . .venv/bin/activate && python pipeline/jobs/run_digest.py
+```
