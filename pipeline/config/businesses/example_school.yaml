@@ -1,0 +1,26 @@
+business_id: "11111111-1111-1111-1111-111111111111"
+name: "Empresa Escolar Uy"
+keywords_include:
+  - colegio
+  - educación
+  - escolar
+  - uniforme
+  - túnica
+  - remera
+keywords_exclude:
+  - hospitalaria
+  - dragado
+  - petróleo
+categories_include:
+  - textil
+  - indumentaria
+departments_include:
+  - montevideo
+  - canelones
+min_amount: 50000
+max_amount: 5000000
+weights:
+  fit: 0.6
+  urgency: 0.3
+  amount: 0.1
+alert_threshold: 75
