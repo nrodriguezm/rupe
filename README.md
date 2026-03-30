@@ -23,3 +23,16 @@ Run a sample collector:
 ```bash
 python pipeline/collectors/compras_listings.py
 ```
+
+Run demo scoring + digest:
+
+```bash
+python pipeline/main.py
+```
+
+Run listings ETL (parse + normalize + DB upsert):
+
+```bash
+# requires DATABASE_URL or local postgres in defaults
+python pipeline/jobs/run_listings_etl.py
+```

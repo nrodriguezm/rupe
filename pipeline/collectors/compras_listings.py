@@ -16,6 +16,7 @@ class ListingSample:
     title: str
     deadline_text: str | None
     published_text: str | None
+    last_modified_text: str | None = None
 
 
 def fetch_text(url: str) -> str:
@@ -27,27 +28,39 @@ def fetch_text(url: str) -> str:
 def parse_samples(html: str, limit: int = 10) -> list[ListingSample]:
     soup = BeautifulSoup(html, "html.parser")
     text = soup.get_text(" ", strip=True)
+    text = re.sub(r"\s+", " ", text)
 
-    # heuristic split around common marker in listing page
-    chunks = re.split(r"Recepción de ofertas hasta:\s*", text)
+    # title + reception + publication (+ optional last-modification)
+    pattern = re.compile(
+        r"(?P<title>.*?)\s*Recepción de ofertas hasta:\s*(?P<deadline>\d{2}/\d{2}/\d{4}\s+\d{2}:\d{2}hs)"
+        r"\s*Publicado:\s*(?P<published>\d{2}/\d{2}/\d{4}\s+\d{2}:\d{2}hs)"
+        r"(?:\s*\|\s*Última Modificación:\s*(?P<modified>\d{2}/\d{2}/\d{4}\s+\d{2}:\d{2}hs))?",
+        flags=re.IGNORECASE,
+    )
+
     out: list[ListingSample] = []
+    for m in pattern.finditer(text):
+        raw_title = m.group("title")
+        # keep only the tail since this is global page text
+        title = raw_title[-220:]
+        title = re.sub(r"\s+", " ", title).strip(" -|\n\t")
+        # remove obvious menu noise if present
+        for marker in ["Se encontraron", "Filtrando por", "Categorías"]:
+            if marker in title:
+                title = title.split(marker)[-1].strip()
 
-    for i, chunk in enumerate(chunks[1:limit + 1], start=1):
-        # Title is typically right before deadline marker in previous text region.
-        # We reconstruct from current chunk tail/head with lightweight heuristics.
-        prev = chunks[i - 1] if i > 0 else ""
-        title = prev[-180:].split("Última Modificación")[-1].strip()
-        title = re.sub(r"\s+", " ", title)[-120:]
+        out.append(
+            ListingSample(
+                title=title,
+                deadline_text=m.group("deadline"),
+                published_text=m.group("published"),
+                last_modified_text=m.group("modified"),
+            )
+        )
+        if len(out) >= limit:
+            break
 
-        deadline = chunk.split("Publicado:")[0].strip()[:32]
-        published = None
-        if "Publicado:" in chunk:
-            published = chunk.split("Publicado:")[1].strip()[:32]
-
-        if title:
-            out.append(ListingSample(title=title, deadline_text=deadline, published_text=published))
-
-    return out[:limit]
+    return out
 
 
 def main() -> None:
