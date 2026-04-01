@@ -20,6 +20,14 @@ class TestRupeIngest(unittest.TestCase):
         self.assertEqual(rows[0]["legal_name"], "ABC SA")
         self.assertEqual(rows[0]["status"], "Activo")
 
+    def test_parse_rows_semicolon(self):
+        csv_text = "País;Identificación;Denominación Social;Domicilio Fiscal;Localidad;Departamento;Estado\nUY;456;DEF SRL;Calle 2;Salto;Salto;EN INGRESO\n"
+        rows = parse_rows(csv_text, "Registro de Proveedores - Test")
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(rows[0]["identification"], "456")
+        self.assertEqual(rows[0]["legal_name"], "DEF SRL")
+        self.assertEqual(rows[0]["status"], "EN INGRESO")
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -23,4 +23,4 @@ weights:
   fit: 0.6
   urgency: 0.3
   amount: 0.1
-alert_threshold: 75
+alert_threshold: 20

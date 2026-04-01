@@ -62,9 +62,13 @@ def parse_detail(html: str, external_id: str) -> Detail:
 
     # most common pattern: "... - Organismo | Unidad"
     if title and " - " in title and "|" in title:
-        rhs = title.split(" - ", 1)[1]
-        organismo = rhs.split("|", 1)[0].strip()
-        buyer = rhs.split("|", 1)[1].strip()
+        parts = title.split(" - ", 1)
+        if len(parts) == 2:
+            rhs = parts[1]
+            pair = rhs.split("|", 1)
+            if len(pair) == 2:
+                organismo = pair[0].strip()
+                buyer = pair[1].strip()
 
     if not (organismo and buyer):
         m_pair = re.search(

@@ -23,15 +23,29 @@ def mk_hash(data: dict) -> str:
     return hashlib.sha256(raw).hexdigest()
 
 
+def _buyer_from_title(title: str) -> str | None:
+    # e.g. "Compra Directa ... - Organismo | Unidad"
+    if " - " in title and "|" in title:
+        parts = title.split(" - ", 1)
+        if len(parts) == 2:
+            rhs = parts[1]
+            pair = rhs.split("|", 1)
+            if len(pair) == 2:
+                return pair[1].strip()
+    return None
+
+
 def normalize_listing_item(item: dict, source_url: str) -> Opportunity:
     ext_id = item.get("external_id") or mk_hash({"t": item.get("title"), "d": item.get("deadline")})[:16]
     raw_hash = mk_hash(item)
+    title = item.get("title", "").strip()
+    buyer_name = item.get("buyer_name") or _buyer_from_title(title)
     return Opportunity(
         source="compras_estatales",
         external_id=str(ext_id),
-        title=item.get("title", "").strip(),
+        title=title,
         description=item.get("description", "").strip(),
-        buyer_name=item.get("buyer_name"),
+        buyer_name=buyer_name,
         publish_at=parse_uy_dt(item.get("published", "")),
         deadline_at=parse_uy_dt(item.get("deadline", "")),
         status=item.get("status", "open"),

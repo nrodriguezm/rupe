@@ -13,12 +13,17 @@ from pipeline.collectors.compras_details import fetch_detail
 from pipeline.db import get_conn
 
 
-def pending_ids(conn, limit: int = 50) -> list[str]:
+def pending_ids(conn, limit: int = 100) -> list[str]:
     q = """
     select external_id
     from opportunities
     where source = 'compras_estatales'
-      and (description is null or length(description) < 120)
+      and (
+        buyer_name is null
+        or category is null
+        or amount is null
+      )
+    order by id desc
     limit %s
     """
     with conn.cursor() as cur:

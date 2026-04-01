@@ -22,7 +22,9 @@ def detect_field(row: dict, choices: list[str]) -> str | None:
 
 
 def parse_rows(csv_text: str, period: str) -> list[dict]:
-    reader = csv.DictReader(io.StringIO(csv_text))
+    head = (csv_text.splitlines()[0] if csv_text else "")
+    delimiter = ";" if head.count(";") > head.count(",") else ","
+    reader = csv.DictReader(io.StringIO(csv_text), delimiter=delimiter)
     rows = list(reader)
     if not rows:
         return []

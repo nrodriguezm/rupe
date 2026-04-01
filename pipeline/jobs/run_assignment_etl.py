@@ -50,12 +50,24 @@ def fetch_opportunity_id_map(conn) -> dict[str, int]:
     return m
 
 
+def ensure_business(conn, business_id: str, name: str) -> None:
+    q = """
+    insert into businesses (id, name, active)
+    values (%s::uuid, %s, true)
+    on conflict (id) do update set name = excluded.name
+    """
+    with conn.cursor() as cur:
+        cur.execute(q, (business_id, name))
+
+
 def main() -> None:
     profile = load_simple_yaml(PROFILE)
     business_id = profile.get("business_id", "11111111-1111-1111-1111-111111111111")
+    business_name = profile.get("name", "Default Business")
     threshold = float(profile.get("alert_threshold", 60))
 
     with get_conn() as conn:
+        ensure_business(conn, business_id, business_name)
         opportunities = fetch_open_opportunities(conn)
         idmap = fetch_opportunity_id_map(conn)
 
