@@ -17,7 +17,7 @@ from pipeline.utils.profile_loader import load_simple_yaml
 PROFILE = ROOT / "pipeline/config/businesses/example_school.yaml"
 
 
-def fetch_open_opportunities(conn, limit: int = 200) -> list[Opportunity]:
+def fetch_open_opportunities(conn, limit: int = 5000) -> list[Opportunity]:
     q = """
     select source, external_id, title, coalesce(description,''), buyer_name,
            publish_at, deadline_at, status, amount, currency, category, department,

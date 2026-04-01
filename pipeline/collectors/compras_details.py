@@ -15,7 +15,7 @@ class Detail:
     body_text: str
     buyer: str | None
     organismo: str | None
-    amount: str | None = None
+    amount: float | None = None
     currency: str | None = None
     category: str | None = None
     documents: list[str] | None = None
@@ -24,6 +24,29 @@ class Detail:
 def fetch_html(url: str) -> str:
     with urlopen(url, timeout=30) as fp:
         return fp.read().decode("utf-8", errors="replace")
+
+
+def parse_amount(text: str) -> tuple[float | None, str | None]:
+    # supports: $ 1.234.567,89 | $12345 | U$S 1,234.50
+    m = re.search(r"(U\$S|USD|\$)\s*([0-9][0-9\.,]*)", text, re.IGNORECASE)
+    if not m:
+        return None, None
+    c = m.group(1).upper()
+    raw = m.group(2)
+    # normalize separators
+    if raw.count(",") > 0 and raw.count(".") > 0:
+        # assume dots are thousands, comma decimal
+        num = raw.replace(".", "").replace(",", ".")
+    elif raw.count(",") > 0 and raw.count(".") == 0:
+        num = raw.replace(",", ".")
+    else:
+        num = raw.replace(",", "")
+    try:
+        value = float(num)
+    except ValueError:
+        return None, None
+    currency = "USD" if c in {"U$S", "USD"} else "UYU"
+    return value, currency
 
 
 def parse_detail(html: str, external_id: str) -> Detail:
@@ -91,15 +114,14 @@ def parse_detail(html: str, external_id: str) -> Detail:
         if m_buyer:
             buyer = m_buyer.group(1).strip()
 
-    amount = None
-    currency = None
-    m_amount = re.search(r"(\$\s?[0-9][0-9\.,]*)", text)
-    if m_amount:
-        amount = m_amount.group(1).replace(" ", "")
-        currency = "UYU"
+    amount, currency = parse_amount(text)
 
     category = None
-    m_cat = re.search(r"(Licitación\s+Pública|Licitación\s+Abreviada|Compra\s+Directa|Solicitud\s+de\s+Información)", text, re.IGNORECASE)
+    m_cat = re.search(
+        r"(Licitación\s+Pública|Licitación\s+Abreviada|Concurso\s+de\s+Precios|Compra\s+Directa|Compra\s+por\s+Excepción|Solicitud\s+de\s+Información|Procedimiento\s+Especial)",
+        text,
+        re.IGNORECASE,
+    )
     if m_cat:
         category = m_cat.group(1)
 

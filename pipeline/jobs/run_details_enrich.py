@@ -31,19 +31,13 @@ def pending_ids(conn, limit: int = 100) -> list[str]:
         return [r[0] for r in cur.fetchall()]
 
 
-def update_detail(conn, ext_id: str, description: str, buyer: str | None, category: str | None, amount_raw: str | None, currency: str | None) -> None:
+def update_detail(conn, ext_id: str, description: str, buyer: str | None, category: str | None, amount_val: float | None, currency: str | None) -> None:
     q = """
     update opportunities
     set description = %(description)s,
         buyer_name = coalesce(%(buyer)s, buyer_name),
         category = coalesce(%(category)s, category),
-        amount = coalesce(
-          case
-            when %(amount_raw)s::text is not null then nullif(replace(regexp_replace(%(amount_raw)s::text, '[^0-9.,]', '', 'g'), ',', ''), '')::numeric
-            else null
-          end,
-          amount
-        ),
+        amount = coalesce(%(amount_val)s, amount),
         currency = coalesce(%(currency)s, currency),
         last_seen_at = now()
     where source = 'compras_estatales' and external_id = %(external_id)s
@@ -55,7 +49,7 @@ def update_detail(conn, ext_id: str, description: str, buyer: str | None, catego
                 "description": description,
                 "buyer": buyer,
                 "category": category,
-                "amount_raw": amount_raw,
+                "amount_val": amount_val,
                 "currency": currency,
                 "external_id": ext_id,
             },

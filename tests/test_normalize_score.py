@@ -36,6 +36,20 @@ class TestNormalizeAndScore(unittest.TestCase):
         self.assertGreaterEqual(s, 30)
         self.assertIn("uniforme", reasons["include_hits"])
 
+    def test_category_and_amount_from_title_desc(self):
+        item = {
+            "external_id": "x2",
+            "title": "Concurso de Precios 55/2026 - Organismo X | Unidad Y",
+            "description": "Monto estimado: $ 12.345,67",
+            "published": "24/03/2026 10:30",
+            "deadline": "01/04/2027 11:00",
+            "status": "open",
+        }
+        op = normalize_listing_item(item, "http://example")
+        self.assertEqual(op.category, "Concurso de Precios")
+        self.assertIsNotNone(op.amount)
+        self.assertEqual(op.currency, "UYU")
+
 
 if __name__ == "__main__":
     unittest.main()
