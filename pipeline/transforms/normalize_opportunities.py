@@ -63,6 +63,8 @@ def _amount_from_text(text: str) -> tuple[float | None, str | None]:
     raw = m.group(2)
     if raw.count(",") > 0 and raw.count(".") > 0:
         num = raw.replace(".", "").replace(",", ".")
+    elif raw.count(".") > 1 and raw.count(",") == 0:
+        num = raw.replace(".", "")
     elif raw.count(",") > 0 and raw.count(".") == 0:
         num = raw.replace(",", ".")
     else:

@@ -27,20 +27,24 @@ def fetch_html(url: str) -> str:
 
 
 def parse_amount(text: str) -> tuple[float | None, str | None]:
-    # supports: $ 1.234.567,89 | $12345 | U$S 1,234.50
+    # supports: $ 1.234.567,89 | $ 3.600.000 | $12345 | U$S 1,234.50
     m = re.search(r"(U\$S|USD|\$)\s*([0-9][0-9\.,]*)", text, re.IGNORECASE)
     if not m:
         return None, None
     c = m.group(1).upper()
     raw = m.group(2)
-    # normalize separators
+
     if raw.count(",") > 0 and raw.count(".") > 0:
-        # assume dots are thousands, comma decimal
+        # dot thousands + comma decimals (es-uy style)
         num = raw.replace(".", "").replace(",", ".")
+    elif raw.count(".") > 1 and raw.count(",") == 0:
+        # thousands with dots only: 3.600.000
+        num = raw.replace(".", "")
     elif raw.count(",") > 0 and raw.count(".") == 0:
         num = raw.replace(",", ".")
     else:
         num = raw.replace(",", "")
+
     try:
         value = float(num)
     except ValueError:
