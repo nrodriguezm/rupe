@@ -11,6 +11,8 @@ ROOT = Path(__file__).resolve().parents[2]
 JOBS = [
     [sys.executable, str(ROOT / "pipeline/jobs/run_rupe_ingest.py")],
     [sys.executable, str(ROOT / "pipeline/jobs/run_rss_etl.py")],
+    [sys.executable, str(ROOT / "pipeline/jobs/run_details_enrich.py")],
+    [sys.executable, str(ROOT / "pipeline/jobs/run_entity_resolution.py")],
     [sys.executable, str(ROOT / "pipeline/jobs/run_assignment_etl.py")],
     [sys.executable, str(ROOT / "pipeline/jobs/run_digest.py")],
 ]

@@ -13,9 +13,13 @@ Pipeline to ingest, normalize, score, and assign procurement opportunities from 
 ## Quickstart
 
 ```bash
+# recommended helper
+./scripts/bootstrap_local.sh
+
+# or manual
 python -m venv .venv
 source .venv/bin/activate
-pip install -r requirements.txt
+python -m pip install -r requirements.txt
 ```
 
 Run a sample collector:
@@ -49,9 +53,10 @@ Run RUPE supplier ingestion:
 python pipeline/jobs/run_rupe_ingest.py
 ```
 
-Run assignment and digest generation:
+Run entity resolution + assignment and digest generation:
 
 ```bash
+python pipeline/jobs/run_entity_resolution.py
 python pipeline/jobs/run_assignment_etl.py
 python pipeline/jobs/run_digest.py
 ```
@@ -73,6 +78,7 @@ python pipeline/jobs/run_all.py
 ```cron
 */30 * * * *  cd /path/to/rupe && . .venv/bin/activate && python pipeline/jobs/run_rss_etl.py
 35 * * * *    cd /path/to/rupe && . .venv/bin/activate && python pipeline/jobs/run_details_enrich.py
+40 * * * *    cd /path/to/rupe && . .venv/bin/activate && python pipeline/jobs/run_entity_resolution.py
 5 * * * *     cd /path/to/rupe && . .venv/bin/activate && python pipeline/jobs/run_assignment_etl.py
 10 8 * * *    cd /path/to/rupe && . .venv/bin/activate && python pipeline/jobs/run_digest.py
 ```

@@ -15,6 +15,10 @@ class Detail:
     body_text: str
     buyer: str | None
     organismo: str | None
+    amount: str | None = None
+    currency: str | None = None
+    category: str | None = None
+    documents: list[str] | None = None
 
 
 def fetch_html(url: str) -> str:
@@ -83,7 +87,31 @@ def parse_detail(html: str, external_id: str) -> Detail:
         if m_buyer:
             buyer = m_buyer.group(1).strip()
 
-    return Detail(external_id=external_id, title=title, body_text=text[:6000], buyer=buyer, organismo=organismo)
+    amount = None
+    currency = None
+    m_amount = re.search(r"(\$\s?[0-9][0-9\.,]*)", text)
+    if m_amount:
+        amount = m_amount.group(1).replace(" ", "")
+        currency = "UYU"
+
+    category = None
+    m_cat = re.search(r"(Licitación\s+Pública|Licitación\s+Abreviada|Compra\s+Directa|Solicitud\s+de\s+Información)", text, re.IGNORECASE)
+    if m_cat:
+        category = m_cat.group(1)
+
+    documents = re.findall(r"([A-Za-z0-9_\-]+\.pdf)", html, flags=re.IGNORECASE)
+
+    return Detail(
+        external_id=external_id,
+        title=title,
+        body_text=text[:6000],
+        buyer=buyer,
+        organismo=organismo,
+        amount=amount,
+        currency=currency,
+        category=category,
+        documents=sorted(set(documents)) or None,
+    )
 
 
 def fetch_detail(external_id: str) -> Detail:
