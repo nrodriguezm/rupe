@@ -18,7 +18,7 @@ JOBS = [
 ]
 
 
-def main() -> None:
+def main() -> int:
     results = []
     for cmd in JOBS:
         p = subprocess.run(cmd, cwd=ROOT, capture_output=True, text=True)
@@ -32,8 +32,10 @@ def main() -> None:
         )
         if p.returncode != 0:
             break
-    print(json.dumps({"ok": all(r["returncode"] == 0 for r in results), "runs": results}, ensure_ascii=False, indent=2))
+    ok = all(r["returncode"] == 0 for r in results)
+    print(json.dumps({"ok": ok, "runs": results}, ensure_ascii=False, indent=2))
+    return 0 if ok else 1
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())
