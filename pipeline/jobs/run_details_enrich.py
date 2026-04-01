@@ -34,7 +34,7 @@ def update_detail(conn, ext_id: str, description: str, buyer: str | None, catego
         category = coalesce(%(category)s, category),
         amount = coalesce(
           case
-            when %(amount_raw)s is not null then nullif(replace(regexp_replace(%(amount_raw)s, '[^0-9.,]', '', 'g'), ',', ''), '')::numeric
+            when %(amount_raw)s::text is not null then nullif(replace(regexp_replace(%(amount_raw)s::text, '[^0-9.,]', '', 'g'), ',', ''), '')::numeric
             else null
           end,
           amount
