@@ -82,3 +82,9 @@ python pipeline/jobs/run_all.py
 5 * * * *     cd /path/to/rupe && . .venv/bin/activate && python pipeline/jobs/run_assignment_etl.py
 10 8 * * *    cd /path/to/rupe && . .venv/bin/activate && python pipeline/jobs/run_digest.py
 ```
+
+If cron is unavailable on host/container, run background loop:
+
+```bash
+nohup ./scripts/start_fetch_loop.sh 30 > logs/nohup-loop.out 2>&1 &
+```
