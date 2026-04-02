@@ -129,5 +129,18 @@ create table if not exists opportunity_attachments (
   unique (external_id, file_url)
 );
 
+create table if not exists opportunity_outcomes (
+  id bigserial primary key,
+  opportunity_id bigint references opportunities(id) on delete cascade,
+  external_id text not null,
+  winner_name text,
+  runner_up_name text,
+  outcome_text text,
+  source text,
+  confidence numeric,
+  parsed_at timestamptz default now(),
+  unique (external_id)
+);
+
 alter table opportunities add column if not exists parser_version text;
 alter table opportunities add column if not exists parsed_at timestamptz;

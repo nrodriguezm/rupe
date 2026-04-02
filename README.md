@@ -93,6 +93,12 @@ python pipeline/jobs/run_open_calls_refresh.py
 # query view: v_open_calls_with_deadlines
 ```
 
+Closed-call outcomes (winner + runner-up when present):
+
+```bash
+python pipeline/jobs/run_outcomes_extract.py
+```
+
 Sync local raw files to Supabase Storage bucket:
 
 ```bash

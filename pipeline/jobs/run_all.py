@@ -16,6 +16,7 @@ JOBS = [
     [sys.executable, str(ROOT / "pipeline/jobs/run_replay_from_raw.py")],
     [sys.executable, str(ROOT / "pipeline/jobs/run_attachment_ingest.py")],
     [sys.executable, str(ROOT / "pipeline/jobs/run_open_calls_refresh.py")],
+    [sys.executable, str(ROOT / "pipeline/jobs/run_outcomes_extract.py")],
     [sys.executable, str(ROOT / "pipeline/jobs/run_entity_resolution.py")],
     [sys.executable, str(ROOT / "pipeline/jobs/run_assignment_etl.py")],
     [sys.executable, str(ROOT / "pipeline/jobs/run_digest.py")],
