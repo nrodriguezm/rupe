@@ -15,7 +15,7 @@ from pipeline.storage_local import save_raw
 from pipeline.transforms.upsert_raw_snapshots import insert_detail_snapshot
 
 
-def pending_ids(conn, limit: int = 100) -> list[str]:
+def pending_ids(conn, limit: int = 50) -> list[str]:
     q = """
     select external_id
     from opportunities
@@ -61,38 +61,47 @@ def update_detail(conn, ext_id: str, description: str, buyer: str | None, catego
 def main() -> None:
     updated = 0
     errors = []
+    batch_size = 50
+    max_batches = 10
 
     with get_conn() as conn:
-        ids = pending_ids(conn)
-        for ext_id in ids:
-            try:
-                url = DETAIL_PREFIX + ext_id
-                html = fetch_html(url)
-                d = parse_detail(html, ext_id)
-                payload_path, payload_hash, payload_size = save_raw("detail", html, "html", prefix=ext_id)
-                insert_detail_snapshot(
-                    conn,
-                    {
-                        "external_id": ext_id,
-                        "source_url": url,
-                        "payload_html": None,
-                        "payload_path": payload_path,
-                        "payload_size_bytes": payload_size,
-                        "payload_hash": payload_hash,
-                    },
-                )
-                update_detail(
-                    conn,
-                    ext_id,
-                    d.body_text,
-                    d.buyer or d.organismo,
-                    d.category,
-                    d.amount,
-                    d.currency,
-                )
-                updated += 1
-            except Exception as e:
-                errors.append({"id": ext_id, "error": str(e)})
+        with conn.cursor() as cur:
+            cur.execute("set statement_timeout = 0")
+
+        for _ in range(max_batches):
+            ids = pending_ids(conn, limit=batch_size)
+            if not ids:
+                break
+            for ext_id in ids:
+                try:
+                    with conn.transaction():
+                        url = DETAIL_PREFIX + ext_id
+                        html = fetch_html(url)
+                        d = parse_detail(html, ext_id)
+                        payload_path, payload_hash, payload_size = save_raw("detail", html, "html", prefix=ext_id)
+                        insert_detail_snapshot(
+                            conn,
+                            {
+                                "external_id": ext_id,
+                                "source_url": url,
+                                "payload_html": None,
+                                "payload_path": payload_path,
+                                "payload_size_bytes": payload_size,
+                                "payload_hash": payload_hash,
+                            },
+                        )
+                        update_detail(
+                            conn,
+                            ext_id,
+                            d.body_text,
+                            d.buyer or d.organismo,
+                            d.category,
+                            d.amount,
+                            d.currency,
+                        )
+                        updated += 1
+                except Exception as e:
+                    errors.append({"id": ext_id, "error": str(e)})
 
     print(json.dumps({"ok": len(errors) == 0, "updated": updated, "errors": errors[:10]}, ensure_ascii=False))
 
