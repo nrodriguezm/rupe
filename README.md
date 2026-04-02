@@ -86,6 +86,13 @@ Attachment ingestion (download + extract + summary):
 python pipeline/jobs/run_attachment_ingest.py
 ```
 
+Open-call refresh (status + deadline urgency view):
+
+```bash
+python pipeline/jobs/run_open_calls_refresh.py
+# query view: v_open_calls_with_deadlines
+```
+
 Sync local raw files to Supabase Storage bucket:
 
 ```bash

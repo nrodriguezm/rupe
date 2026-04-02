@@ -24,6 +24,7 @@ def fetch_open_opportunities(conn, limit: int = 5000) -> list[Opportunity]:
            source_url, raw_hash
     from opportunities
     where status = 'open'
+      and (deadline_at is null or deadline_at >= now())
     order by coalesce(deadline_at, now() + interval '365 days') asc
     limit %s
     """
