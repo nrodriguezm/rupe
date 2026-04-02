@@ -109,5 +109,25 @@ alter table raw_rss_snapshots add column if not exists storage_object_key text;
 alter table raw_detail_snapshots add column if not exists synced_at timestamptz;
 alter table raw_detail_snapshots add column if not exists storage_object_key text;
 
+create table if not exists opportunity_attachments (
+  id bigserial primary key,
+  opportunity_id bigint references opportunities(id) on delete cascade,
+  external_id text,
+  file_url text not null,
+  file_name text,
+  mime_type text,
+  file_size_bytes bigint,
+  file_hash text,
+  storage_path text,
+  storage_object_key text,
+  downloaded_at timestamptz,
+  extraction_status text,
+  extracted_text text,
+  summary text,
+  created_at timestamptz default now(),
+  updated_at timestamptz default now(),
+  unique (external_id, file_url)
+);
+
 alter table opportunities add column if not exists parser_version text;
 alter table opportunities add column if not exists parsed_at timestamptz;

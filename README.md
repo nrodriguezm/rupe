@@ -80,6 +80,12 @@ python pipeline/jobs/run_capture_raw_details.py
 python pipeline/jobs/run_replay_from_raw.py
 ```
 
+Attachment ingestion (download + extract + summary):
+
+```bash
+python pipeline/jobs/run_attachment_ingest.py
+```
+
 Sync local raw files to Supabase Storage bucket:
 
 ```bash
