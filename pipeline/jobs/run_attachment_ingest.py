@@ -96,10 +96,18 @@ def extract_pdf_text(path: Path) -> str:
         return ""
 
 
+def _clean_text(text: str) -> str:
+    if not text:
+        return ""
+    # PostgreSQL text can't store NUL bytes
+    return text.replace("\x00", "")
+
+
 def summarize(text: str) -> str:
     if not text:
         return ""
-    t = re.sub(r"\s+", " ", text).strip()
+    t = _clean_text(text)
+    t = re.sub(r"\s+", " ", t).strip()
     return t[:600]
 
 
@@ -128,6 +136,7 @@ def main() -> None:
                     extracted = ""
                     if fname.lower().endswith(".pdf"):
                         extracted = extract_pdf_text(ROOT / rel)
+                    extracted = _clean_text(extracted)
                     rows_out.append(
                         {
                             "opportunity_id": opp_id,
