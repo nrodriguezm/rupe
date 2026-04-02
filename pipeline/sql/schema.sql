@@ -78,7 +78,9 @@ create table if not exists raw_rss_snapshots (
   id bigserial primary key,
   source_url text not null,
   fetched_at timestamptz default now(),
-  payload_xml text not null,
+  payload_xml text,
+  payload_path text,
+  payload_size_bytes bigint,
   payload_hash text not null,
   item_count int,
   unique (source_url, payload_hash)
@@ -89,10 +91,19 @@ create table if not exists raw_detail_snapshots (
   external_id text not null,
   source_url text not null,
   fetched_at timestamptz default now(),
-  payload_html text not null,
+  payload_html text,
+  payload_path text,
+  payload_size_bytes bigint,
   payload_hash text not null,
   unique (external_id, payload_hash)
 );
+
+alter table raw_rss_snapshots add column if not exists payload_path text;
+alter table raw_rss_snapshots add column if not exists payload_size_bytes bigint;
+alter table raw_detail_snapshots add column if not exists payload_path text;
+alter table raw_detail_snapshots add column if not exists payload_size_bytes bigint;
+alter table raw_rss_snapshots alter column payload_xml drop not null;
+alter table raw_detail_snapshots alter column payload_html drop not null;
 
 alter table opportunities add column if not exists parser_version text;
 alter table opportunities add column if not exists parsed_at timestamptz;

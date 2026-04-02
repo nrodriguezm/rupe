@@ -14,7 +14,7 @@ from pipeline.db import get_conn
 
 def fetch_latest_raw_details(conn, limit: int = 1000):
     q = """
-    select distinct on (external_id) external_id, source_url, payload_html, fetched_at
+    select distinct on (external_id) external_id, source_url, payload_html, payload_path, fetched_at
     from raw_detail_snapshots
     order by external_id, fetched_at desc
     limit %s
@@ -57,8 +57,14 @@ def main() -> None:
     updated = 0
     with get_conn() as conn:
         rows = fetch_latest_raw_details(conn)
-        for ext_id, _url, html, _ts in rows:
+        for ext_id, _url, html, payload_path, _ts in rows:
             scanned += 1
+            if not html and payload_path:
+                p = ROOT / payload_path
+                if p.exists():
+                    html = p.read_text(encoding="utf-8")
+            if not html:
+                continue
             d = parse_detail(html, ext_id)
             update_from_replay(conn, ext_id, d)
             updated += 1

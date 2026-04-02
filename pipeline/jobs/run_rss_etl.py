@@ -8,8 +8,9 @@ ROOT = Path(__file__).resolve().parents[2]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from pipeline.collectors.compras_rss import RSS_URL, fetch_items, fetch_xml, xml_hash
+from pipeline.collectors.compras_rss import RSS_URL, fetch_items, fetch_xml
 from pipeline.db import get_conn
+from pipeline.storage_local import save_raw
 from pipeline.transforms.normalize_opportunities import normalize_listing_item
 from pipeline.transforms.upsert_opportunities import upsert_many
 from pipeline.transforms.upsert_raw_snapshots import insert_rss_snapshot
@@ -30,13 +31,17 @@ def main() -> None:
         }
         normalized.append(normalize_listing_item(item, it.source_url))
 
+    payload_path, payload_hash, payload_size = save_raw("rss", xml_text, "xml")
+
     with get_conn() as conn:
         insert_rss_snapshot(
             conn,
             {
                 "source_url": RSS_URL,
-                "payload_xml": xml_text,
-                "payload_hash": xml_hash(xml_text),
+                "payload_xml": None,
+                "payload_path": payload_path,
+                "payload_size_bytes": payload_size,
+                "payload_hash": payload_hash,
                 "item_count": len(rss_items),
             },
         )

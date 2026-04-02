@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import hashlib
 import json
 import re
 import sys
@@ -12,6 +11,7 @@ if str(ROOT) not in sys.path:
 
 from pipeline.collectors.compras_details import DETAIL_PREFIX, fetch_html, parse_detail
 from pipeline.db import get_conn
+from pipeline.storage_local import save_raw
 from pipeline.transforms.upsert_raw_snapshots import insert_detail_snapshot
 
 
@@ -69,13 +69,16 @@ def main() -> None:
                 url = DETAIL_PREFIX + ext_id
                 html = fetch_html(url)
                 d = parse_detail(html, ext_id)
+                payload_path, payload_hash, payload_size = save_raw("detail", html, "html", prefix=ext_id)
                 insert_detail_snapshot(
                     conn,
                     {
                         "external_id": ext_id,
                         "source_url": url,
-                        "payload_html": html,
-                        "payload_hash": hashlib.sha256(html.encode("utf-8")).hexdigest(),
+                        "payload_html": None,
+                        "payload_path": payload_path,
+                        "payload_size_bytes": payload_size,
+                        "payload_hash": payload_hash,
                     },
                 )
                 update_detail(
