@@ -73,3 +73,26 @@ create table if not exists suppliers_rupe (
   raw jsonb not null,
   unique (source_period, identification, legal_name)
 );
+
+create table if not exists raw_rss_snapshots (
+  id bigserial primary key,
+  source_url text not null,
+  fetched_at timestamptz default now(),
+  payload_xml text not null,
+  payload_hash text not null,
+  item_count int,
+  unique (source_url, payload_hash)
+);
+
+create table if not exists raw_detail_snapshots (
+  id bigserial primary key,
+  external_id text not null,
+  source_url text not null,
+  fetched_at timestamptz default now(),
+  payload_html text not null,
+  payload_hash text not null,
+  unique (external_id, payload_hash)
+);
+
+alter table opportunities add column if not exists parser_version text;
+alter table opportunities add column if not exists parsed_at timestamptz;

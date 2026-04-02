@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import html
 import json
 import re
@@ -56,11 +57,20 @@ def _extract_dates(desc: str) -> tuple[str | None, str | None, str | None]:
     return published, deadline, modified
 
 
-def fetch_items(url: str = RSS_URL, limit: int = 200) -> list[RssItem]:
+def fetch_xml(url: str = RSS_URL) -> str:
     with urlopen(url, timeout=30) as fp:
-        xml_data = fp.read()
+        return fp.read().decode("utf-8", errors="replace")
 
-    root = ET.fromstring(xml_data)
+
+def xml_hash(xml_text: str) -> str:
+    return hashlib.sha256(xml_text.encode("utf-8")).hexdigest()
+
+
+def fetch_items(url: str = RSS_URL, limit: int = 200, xml_text: str | None = None) -> list[RssItem]:
+    if xml_text is None:
+        xml_text = fetch_xml(url)
+
+    root = ET.fromstring(xml_text.encode("utf-8"))
     out: list[RssItem] = []
     for item in root.findall("./channel/item")[:limit]:
         title = (item.findtext("title") or "").strip()

@@ -8,11 +8,11 @@ UPSERT_SQL = """
 insert into opportunities (
   source, external_id, title, description, buyer_name, buyer_entity_id,
   publish_at, deadline_at, status, amount, currency, category, department,
-  source_url, raw_hash, first_seen_at, last_seen_at
+  source_url, raw_hash, parser_version, parsed_at, first_seen_at, last_seen_at
 ) values (
   %(source)s, %(external_id)s, %(title)s, %(description)s, %(buyer_name)s, %(buyer_entity_id)s,
   %(publish_at)s, %(deadline_at)s, %(status)s, %(amount)s, %(currency)s, %(category)s, %(department)s,
-  %(source_url)s, %(raw_hash)s, now(), now()
+  %(source_url)s, %(raw_hash)s, %(parser_version)s, now(), now(), now()
 )
 on conflict (source, external_id)
 do update set
@@ -28,6 +28,8 @@ do update set
   department = excluded.department,
   source_url = excluded.source_url,
   raw_hash = excluded.raw_hash,
+  parser_version = excluded.parser_version,
+  parsed_at = now(),
   last_seen_at = now();
 """
 
@@ -49,6 +51,7 @@ def to_row(op: Opportunity) -> dict:
         "department": op.department,
         "source_url": op.source_url,
         "raw_hash": op.raw_hash,
+        "parser_version": "v1.3",
     }
 
 

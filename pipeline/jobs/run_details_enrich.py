@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import json
 import re
 import sys
@@ -9,8 +10,9 @@ ROOT = Path(__file__).resolve().parents[2]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from pipeline.collectors.compras_details import fetch_detail
+from pipeline.collectors.compras_details import DETAIL_PREFIX, fetch_html, parse_detail
 from pipeline.db import get_conn
+from pipeline.transforms.upsert_raw_snapshots import insert_detail_snapshot
 
 
 def pending_ids(conn, limit: int = 100) -> list[str]:
@@ -64,7 +66,18 @@ def main() -> None:
         ids = pending_ids(conn)
         for ext_id in ids:
             try:
-                d = fetch_detail(ext_id)
+                url = DETAIL_PREFIX + ext_id
+                html = fetch_html(url)
+                d = parse_detail(html, ext_id)
+                insert_detail_snapshot(
+                    conn,
+                    {
+                        "external_id": ext_id,
+                        "source_url": url,
+                        "payload_html": html,
+                        "payload_hash": hashlib.sha256(html.encode("utf-8")).hexdigest(),
+                    },
+                )
                 update_detail(
                     conn,
                     ext_id,

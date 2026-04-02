@@ -73,6 +73,13 @@ Run full sequence:
 python pipeline/jobs/run_all.py
 ```
 
+Raw snapshot + replay utilities:
+
+```bash
+python pipeline/jobs/run_capture_raw_details.py
+python pipeline/jobs/run_replay_from_raw.py
+```
+
 ## Suggested cron schedule
 
 ```cron
