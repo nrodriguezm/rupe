@@ -80,6 +80,13 @@ python pipeline/jobs/run_capture_raw_details.py
 python pipeline/jobs/run_replay_from_raw.py
 ```
 
+Sync local raw files to Supabase Storage bucket:
+
+```bash
+python pipeline/jobs/run_sync_storage.py
+```
+(uses `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `SUPABASE_STORAGE_BUCKET`)
+
 ## Suggested cron schedule
 
 ```cron

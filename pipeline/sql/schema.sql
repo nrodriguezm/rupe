@@ -104,6 +104,10 @@ alter table raw_detail_snapshots add column if not exists payload_path text;
 alter table raw_detail_snapshots add column if not exists payload_size_bytes bigint;
 alter table raw_rss_snapshots alter column payload_xml drop not null;
 alter table raw_detail_snapshots alter column payload_html drop not null;
+alter table raw_rss_snapshots add column if not exists synced_at timestamptz;
+alter table raw_rss_snapshots add column if not exists storage_object_key text;
+alter table raw_detail_snapshots add column if not exists synced_at timestamptz;
+alter table raw_detail_snapshots add column if not exists storage_object_key text;
 
 alter table opportunities add column if not exists parser_version text;
 alter table opportunities add column if not exists parsed_at timestamptz;
