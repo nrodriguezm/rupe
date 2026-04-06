@@ -19,6 +19,8 @@ class Detail:
     currency: str | None = None
     category: str | None = None
     documents: list[str] | None = None
+    published_text: str | None = None
+    deadline_text: str | None = None
 
 
 def fetch_html(url: str) -> str:
@@ -131,6 +133,29 @@ def parse_detail(html: str, external_id: str) -> Detail:
 
     documents = re.findall(r"([A-Za-z0-9_\-]+\.pdf)", html, flags=re.IGNORECASE)
 
+    # publish/deadline extraction from detail labels
+    published_text = None
+    deadline_text = None
+    m_pub = re.search(r"Fecha\s*Publicaci[oó]n\s*:?[^<]{0,40}<\/li>\s*<li[^>]*>\s*<strong>\s*([0-9]{2}(?:&sol;|/|&#47;)[0-9]{2}(?:&sol;|/|&#47;)[0-9]{4}\s+[0-9]{2}:[0-9]{2})", html, re.IGNORECASE)
+    if not m_pub:
+        m_pub = re.search(r"Fecha\s*Publicaci[oó]n\s*:?\s*(?:&nbsp;)?\s*<strong>\s*([0-9]{2}(?:&sol;|/|&#47;)[0-9]{2}(?:&sol;|/|&#47;)[0-9]{4}\s+[0-9]{2}:[0-9]{2})", html, re.IGNORECASE)
+    if m_pub:
+        published_text = m_pub.group(1).replace('&sol;','/').replace('&#47;','/')
+    else:
+        m_pub2 = re.search(r"Fecha\s*Publicaci[oó]n\s*:?\s*([0-9]{2}/[0-9]{2}/[0-9]{4}\s+[0-9]{2}:[0-9]{2})", text, re.IGNORECASE)
+        if m_pub2:
+            published_text = m_pub2.group(1)
+
+    m_dead = re.search(r"Recepci[oó]n\s+de\s+ofertas\s+hasta\s*:?[^<]{0,40}<\/li>\s*<li[^>]*>\s*<strong>\s*([0-9]{2}(?:&sol;|/|&#47;)[0-9]{2}(?:&sol;|/|&#47;)[0-9]{4}\s+[0-9]{2}:[0-9]{2})", html, re.IGNORECASE)
+    if not m_dead:
+        m_dead = re.search(r"Recepci[oó]n\s+de\s+ofertas\s+hasta\s*:?\s*(?:&nbsp;)?\s*<strong>\s*([0-9]{2}(?:&sol;|/|&#47;)[0-9]{2}(?:&sol;|/|&#47;)[0-9]{4}\s+[0-9]{2}:[0-9]{2})", html, re.IGNORECASE)
+    if m_dead:
+        deadline_text = m_dead.group(1).replace('&sol;','/').replace('&#47;','/')
+    else:
+        m_dead2 = re.search(r"Recepci[oó]n\s+de\s+ofertas\s+hasta\s*:?\s*([0-9]{2}/[0-9]{2}/[0-9]{4}\s+[0-9]{2}:[0-9]{2})", text, re.IGNORECASE)
+        if m_dead2:
+            deadline_text = m_dead2.group(1)
+
     return Detail(
         external_id=external_id,
         title=title,
@@ -141,6 +166,8 @@ def parse_detail(html: str, external_id: str) -> Detail:
         currency=currency,
         category=category,
         documents=sorted(set(documents)) or None,
+        published_text=published_text,
+        deadline_text=deadline_text,
     )
 
 
