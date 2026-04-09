@@ -84,6 +84,8 @@ Attachment ingestion (download + extract + summary):
 
 ```bash
 python pipeline/jobs/run_attachment_ingest.py
+python pipeline/jobs/run_archive_extract.py   # unzip/7z extract + child file processing
+python pipeline/jobs/run_specs_extract.py     # extract searchable item/product/service specs
 ```
 
 Open-call refresh (status + deadline urgency view):
@@ -91,6 +93,13 @@ Open-call refresh (status + deadline urgency view):
 ```bash
 python pipeline/jobs/run_open_calls_refresh.py
 # query view: v_open_calls_with_deadlines
+```
+
+Analytics layer refresh (Issue #9):
+
+```bash
+python pipeline/jobs/run_analytics_refresh.py
+# applies sql/analytics_v1.sql and updates analytics.quality_daily + dimensions
 ```
 
 Closed-call outcomes (winner + runner-up when present):
