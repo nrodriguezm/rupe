@@ -102,6 +102,15 @@ python pipeline/jobs/run_analytics_refresh.py
 # applies sql/analytics_v1.sql and updates analytics.quality_daily + dimensions
 ```
 
+Query cookbook:
+
+```bash
+# see ready-to-run examples
+cat sql/query_cookbook_v1.sql
+# docs
+cat docs/analytics_v1.md
+```
+
 Closed-call outcomes (winner + runner-up when present):
 
 ```bash
