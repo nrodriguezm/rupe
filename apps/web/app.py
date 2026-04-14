@@ -4,8 +4,11 @@ import os
 from typing import Any
 
 import psycopg
+import csv
+import io
+
 from fastapi import FastAPI, Query
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, PlainTextResponse
 
 app = FastAPI(title="RUPE Analytics UI")
 
@@ -50,6 +53,12 @@ button{background:#4f7cff;color:#fff;border:0;padding:8px 12px;border-radius:8px
 </div>
 
 <div class='card' style='margin-top:12px'>
+<h3>Institution ↔ Company Relationships</h3>
+<div class='small'>Top winner relationships to explore dependency patterns</div>
+<div id='rels'></div>
+</div>
+
+<div class='card' style='margin-top:12px'>
 <h3>Filtered Calls</h3>
 <div style='display:flex;gap:8px;flex-wrap:wrap'>
 <input id='from' placeholder='2025-01-01'>
@@ -58,6 +67,7 @@ button{background:#4f7cff;color:#fff;border:0;padding:8px 12px;border-radius:8px
 <select id='status'><option value=''>any status</option><option>open</option><option>closed</option></select>
 <input id='category' placeholder='category contains'>
 <button onclick='loadCalls()'>Run</button>
+<button onclick='downloadCsv()'>Export CSV</button>
 </div>
 <div id='calls'></div>
 </div>
@@ -74,13 +84,19 @@ async function load(){
  document.getElementById('kpis').innerHTML=cards.map(([a,b])=>`<div class=card><div class=small>${a}</div><div style="font-size:24px">${b}</div></div>`).join('');
  const top=await get('/api/top-institutions');
  const dep=await get('/api/dependency');
+ const rel=await get('/api/relationships?limit=20');
  document.getElementById('samples').innerHTML='<h4>Top institutions</h4>'+table(top)+'<h4>Dependency</h4>'+table(dep);
+ document.getElementById('rels').innerHTML=table(rel);
  await loadCalls();
 }
 async function loadCalls(){
  const p=new URLSearchParams({from:from.value,to:to.value,institution:institution.value,status:status.value,category:category.value,limit:'50'});
  const rows=await get('/api/calls?'+p.toString());
  document.getElementById('calls').innerHTML=table(rows);
+}
+function downloadCsv(){
+ const p=new URLSearchParams({from:from.value,to:to.value,institution:institution.value,status:status.value,category:category.value,limit:'2000'});
+ window.open('/api/calls.csv?'+p.toString(),'_blank');
 }
 load();
 </script>
@@ -126,15 +142,19 @@ def api_dependency(limit: int = 10):
     return fetch_all(q, (limit,))
 
 
-@app.get('/api/calls')
-def api_calls(
-    from_: str = Query("2025-01-01", alias='from'),
-    to: str = Query("2026-01-01"),
-    institution: str = "",
-    status: str = "",
-    category: str = "",
-    limit: int = 50,
-):
+@app.get('/api/relationships')
+def api_relationships(limit: int = 20):
+    q = """
+    select institution, company, wins, amount_sum, first_seen, last_seen
+    from analytics.v_institution_company_relationships
+    where institution <> 'unknown' and company <> 'unknown'
+    order by wins desc
+    limit %s
+    """
+    return fetch_all(q, (limit,))
+
+
+def _calls_rows(from_: str, to: str, institution: str, status: str, category: str, limit: int):
     q = """
     select external_id, title, buyer_name, category, status, publish_at, deadline_at, source_url
     from analytics.fact_calls
@@ -146,3 +166,34 @@ def api_calls(
     limit %s
     """
     return fetch_all(q, (from_, to, institution, institution, status, status, category, category, limit))
+
+
+@app.get('/api/calls')
+def api_calls(
+    from_: str = Query("2025-01-01", alias='from'),
+    to: str = Query("2026-01-01"),
+    institution: str = "",
+    status: str = "",
+    category: str = "",
+    limit: int = 50,
+):
+    return _calls_rows(from_, to, institution, status, category, limit)
+
+
+@app.get('/api/calls.csv', response_class=PlainTextResponse)
+def api_calls_csv(
+    from_: str = Query("2025-01-01", alias='from'),
+    to: str = Query("2026-01-01"),
+    institution: str = "",
+    status: str = "",
+    category: str = "",
+    limit: int = 2000,
+):
+    rows = _calls_rows(from_, to, institution, status, category, limit)
+    if not rows:
+        return ""
+    out = io.StringIO()
+    w = csv.DictWriter(out, fieldnames=list(rows[0].keys()))
+    w.writeheader()
+    w.writerows(rows)
+    return out.getvalue()
